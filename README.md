@@ -4,15 +4,15 @@ Sample Synerex Provider for Python
 
 # Install
 
-git clone https://github.com/synerex/python_provider_sample.git
-cd python_provider_sample
-git submodule update --init --recursive
+git clone https://github.com/synerex/python_provider_sample.git  
+cd python_provider_sample  
+git submodule update --init --recursive  
 
-pip install grpcio-tools
-pip install futures
+pip install grpcio-tools  
+pip install futures  
 
-python -m grpc_tools.protoc -I. --python_out=. --grpc_python_out=. ./api/synerex.proto
-python -m grpc_tools.protoc -I. --python_out=. --grpc_python_out=. ./nodeapi/nodeapi.proto
+python -m grpc_tools.protoc -I. --python_out=. --grpc_python_out=. ./api/synerex.proto  
+python -m grpc_tools.protoc -I. --python_out=. --grpc_python_out=. ./nodeapi/nodeapi.proto  
 
 # before you start
 
