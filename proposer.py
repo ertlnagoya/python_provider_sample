@@ -35,14 +35,12 @@ def subscribeDemand(client, nodeid):
     for response in responses:
         demandCallback(client, nodeid, response)
 
-def connectSynerexServer(nodeid):
-    log("Connecting synerex Server:" + nodeid.server_info)
-    with grpc.insecure_channel(nodeid.server_info) as channel:
-        client = synerex_pb2_grpc.SynerexStub(channel)
-        while True:
-            subscribeDemand(client, nodeid)
+def connectSynerexServer(client, nodeid):
+    while True:
+        subscribeDemand(client, nodeid)
 
 def startKeepAlive(stub, nodeid):
+    log('Start Keep Alive')
     update = 0
     while True:
         time.sleep(nodeid.keepalive_duration)
@@ -65,11 +63,14 @@ def run():
         else:
             log("NodeServer connect success!")
             log(nodeid)
-            executor = concurrent.futures.ProcessPoolExecutor(max_workers=2)
-            futures = [executor.submit(connectSynerexServer(nodeid)), executor.submit(startKeepAlive(stub, nodeid))]
-            for future in concurrent.futures.as_completed(futures):
-              log(future.result())
-            executor.shutdown()
+            log("Connecting synerex Server:" + nodeid.server_info)
+            with grpc.insecure_channel(nodeid.server_info) as channel:
+                client = synerex_pb2_grpc.SynerexStub(channel)
+                executor = concurrent.futures.ThreadPoolExecutor(max_workers=10)
+                futures = [executor.submit(startKeepAlive, stub, nodeid), executor.submit(connectSynerexServer, client, nodeid)]
+                for future in concurrent.futures.as_completed(futures):
+                    log(future.result())
+                executor.shutdown()
 
 if __name__ == '__main__':
     run()

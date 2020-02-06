@@ -1,43 +1,50 @@
 import grpc
 import time
+import random
 import concurrent.futures
 from nodeapi import nodeapi_pb2
 from nodeapi import nodeapi_pb2_grpc
 from api import synerex_pb2
 from api import synerex_pb2_grpc
 
+ns = []
+executor = concurrent.futures.ThreadPoolExecutor(max_workers=10)
+futures = []
+
+def rand_ints_nodup():
+    while True:
+        n = random.randint(0, 1000)
+        if not n in ns:
+            ns.append(n)
+            break
+    return n
 
 def log(obj):
     print(obj, flush=True)
 
-def notifyDemand(client):
+def notifyDemand(client, nodeid):
+    log('Notify Demand')
     while True:
-      client.NotifyDemand(synerex_pb2.Demand(sender_id=nodeid.node_id, target_id=dm.id, channel_type=1, demand_name='Test Demand'))
-      time.sleep(10)
+        client.NotifyDemand(synerex_pb2.Demand(id=rand_ints_nodup(), sender_id=nodeid.node_id, channel_type=1, demand_name='Test Demand'))
+        time.sleep(10)
 
 def supplyCallback(client, nodeid, sp):
     log('Received message {}'.format(sp.supply_name))
-    pid = client.SelectSupply(synerex_pb2.Target(target_id=sp.id))
+    pid = client.SelectSupply(synerex_pb2.Target(target_id=sp.id, channel_type=1))
     log(pid)
 
 def subscribeSupply(client, nodeid):
-    log('Subscribe Demand')
-    while True:
-        responses = client.SubscribeSupply(synerex_pb2.Channel(client_id=nodeid.node_id, channel_type=1))
-        for response in responses:
-            supplyCallback(client, nodeid, response)
+    log('Subscribe Supply')
+    responses = client.SubscribeSupply(synerex_pb2.Channel(client_id=nodeid.node_id, channel_type=1))
+    for response in responses:
+        supplyCallback(client, nodeid, response)
 
-def connectSynerexServer(nodeid):
-    log("Connecting synerex Server:" + nodeid.server_info)
-    with grpc.insecure_channel(nodeid.server_info) as channel:
-        client = synerex_pb2_grpc.SynerexStub(channel)
-        executor = concurrent.futures.ProcessPoolExecutor(max_workers=2)
-        futures = [executor.submit(subscribeSupply(client, nodeid)), executor.submit(notifyDemand(client))]
-        for future in concurrent.futures.as_completed(futures):
-            log(future.result())
-        executor.shutdown()
+def connectSynerexServer(client, nodeid):
+    while True:
+        subscribeSupply(client, nodeid)
 
 def startKeepAlive(stub, nodeid):
+    log('Start Keep Alive')
     update = 0
     while True:
         time.sleep(nodeid.keepalive_duration)
@@ -59,12 +66,14 @@ def run():
             log("Error connecting NodeServ.")
         else:
             log("NodeServer connect success!")
-            log(nodeid)
-            executor = concurrent.futures.ProcessPoolExecutor(max_workers=2)
-            futures = [executor.submit(connectSynerexServer(nodeid)), executor.submit(startKeepAlive(stub, nodeid))]
-            for future in concurrent.futures.as_completed(futures):
-              log(future.result())
-            executor.shutdown()
+            with grpc.insecure_channel(nodeid.server_info) as channel:
+                log("Connecting synerex Server:" + nodeid.server_info)
+                client = synerex_pb2_grpc.SynerexStub(channel)
+                log(nodeid)
+                futures = [executor.submit(startKeepAlive, stub, nodeid), executor.submit(connectSynerexServer, client, nodeid), executor.submit(notifyDemand, client, nodeid)]
+                for future in concurrent.futures.as_completed(futures):
+                  log(future.result())
+                executor.shutdown()
 
 if __name__ == '__main__':
     run()
