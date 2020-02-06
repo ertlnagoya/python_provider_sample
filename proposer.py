@@ -1,11 +1,21 @@
 import grpc
 import time
+import random
 import concurrent.futures
 from nodeapi import nodeapi_pb2
 from nodeapi import nodeapi_pb2_grpc
 from api import synerex_pb2
 from api import synerex_pb2_grpc
 
+ns = []
+
+def rand_ints_nodup():
+    while True:
+        n = random.randint(0, 1000)
+        if not n in ns:
+            ns.append(n)
+            break
+    return n
 
 def log(obj):
     print(obj, flush=True)
@@ -14,9 +24,9 @@ def demandCallback(client, nodeid, dm):
     log('Received message {}'.format(dm.demand_name))
     if dm.target_id != 0:
         log('getSelect')
-        client.Confirm(synerex_pb2.Target(target_id=dm.id))
+        client.Confirm(synerex_pb2.Target(id=rand_ints_nodup(), sender_id=nodeid.node_id, target_id=dm.id, channel_type=1))
     else:
-        pid = client.ProposeSupply(synerex_pb2.Supply(sender_id=nodeid.node_id, target_id=dm.id, channel_type=1, supply_name='Test Supply'))
+        pid = client.ProposeSupply(synerex_pb2.Supply(id=rand_ints_nodup(), sender_id=nodeid.node_id, target_id=dm.id, channel_type=1, supply_name='Test Supply'))
         log(pid)
 
 def subscribeDemand(client, nodeid):
