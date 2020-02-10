@@ -10,6 +10,7 @@ git submodule update --init --recursive
 
 pip install grpcio-tools  
 pip install futures  
+pip install protobuf3
 
 python -m grpc_tools.protoc -I. --python_out=. --grpc_python_out=. ./api/synerex.proto  
 python -m grpc_tools.protoc -I. --python_out=. --grpc_python_out=. ./nodeapi/nodeapi.proto  
