@@ -28,16 +28,14 @@ def connectSynerexServer(client):
 
 def run():
     channels = [1]
-    srv = sxutil.RegisterNode('localhost:9990', 'Python Proposer', channels, None)
+#    srv = sxutil.RegisterNode('localhost:9990', 'Python Proposer', channels, None)
+    srv = 'localhost:18000'
     sxutil.log(srv)
     with grpc.insecure_channel(srv) as channel:
         sxutil.log("Connecting synerex Server:" + srv)
         client = synerex_pb2_grpc.SynerexStub(channel)
         sxClient = sxutil.SXServiceClient(client, 1, '')
-        sxutil.futures.append(sxutil.executor.submit(connectSynerexServer, sxClient))
-        for future in concurrent.futures.as_completed(sxutil.futures):
-            sxutil.log(future.result())
-        sxutil.executor.shutdown()
+        connectSynerexServer(sxClient)
 
 if __name__ == '__main__':
     run()
