@@ -17,7 +17,9 @@ python -m grpc_tools.protoc -I. --python_out=. --grpc_python_out=. ./nodeapi/nod
 
 # before you start
 
-You need to install or find synerex_beta NodeID Server with Synerex server runnning.
+1. You need to install or find synerex_beta NodeID Server with Synerex server runnning.
+
+2. run proxy on localhost 
 
 # test run
 
