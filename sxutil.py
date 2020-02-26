@@ -1,7 +1,6 @@
 import grpc
 import time
 import random
-import concurrent.futures
 from google.protobuf.timestamp_pb2 import Timestamp
 from nodeapi import nodeapi_pb2
 from nodeapi import nodeapi_pb2_grpc
@@ -62,12 +61,14 @@ class SXServiceClient:
     def SubscribeDemand(self, func):
         global myNodeId
         responses = self.Client.SubscribeDemand(synerex_pb2.Channel(client_id=myNodeId, channel_type=self.ChannelType))
+        log(responses)
         for response in responses:
             func(self, response)
 
     def SubscribeSupply(self, func):
         global myNodeId
         responses = self.Client.SubscribeSupply(synerex_pb2.Channel(client_id=myNodeId, channel_type=self.ChannelType))
+        log(responses)
         for response in responses:
             func(self, response)
 

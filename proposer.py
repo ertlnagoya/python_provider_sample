@@ -1,7 +1,6 @@
 import grpc
 import time
 import random
-import concurrent.futures
 import sxutil
 from nodeapi import nodeapi_pb2
 from nodeapi import nodeapi_pb2_grpc
@@ -23,12 +22,10 @@ def subscribeDemand(client):
     client.SubscribeDemand(demandCallback)
 
 def connectSynerexServer(client):
-    while True:
-        subscribeDemand(client)
+    subscribeDemand(client)
 
 def run():
     channels = [1]
-#    srv = sxutil.RegisterNode('localhost:9990', 'Python Proposer', channels, None)
     srv = 'localhost:18000'
     sxutil.log(srv)
     with grpc.insecure_channel(srv) as channel:
