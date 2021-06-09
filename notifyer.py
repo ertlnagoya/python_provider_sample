@@ -1,3 +1,4 @@
+import sys
 import grpc
 import time
 import random
@@ -8,25 +9,30 @@ from api import synerex_pb2
 from api import synerex_pb2_grpc
 
 def notifyDemand(client):
-    sxutil.log('Notify Demand')
-    dmo = sxutil.DemandOpts('Test Demand')
+    sxutil.log('需要出します！')
+    sxutil.log('需要：このスペースに１秒後入りたいです')
+    dmo = sxutil.DemandOpts('このスペースに１秒後入りたいです')
     client.NotifyDemand(dmo)
 
 def supplyCallback(client, sp):
-    sxutil.log('Received message {}'.format(sp.supply_name))
+    sxutil.log('供給を受け取りました：{}'.format(sp.supply_name))
     pid = client.SelectSupply(sp)
     sxutil.log(pid)
 
 def subscribeSupply(client):
-    sxutil.log('Subscribe Supply')
+    sxutil.log('供給を受け取ります')
     client.SubscribeSupply(supplyCallback)
 
 def connectSynerexServer(client):
     subscribeSupply(client)
 
-def run():
-    channels = [1]
-    srv = 'localhost:18000'
+def run(args):
+    if len(args) == 1:
+        channels = [1]
+    else:
+        channels = [int(args[1])]
+    sxutil.log(f'channels : {channels}')
+    srv = 'localhost:10000'
     sxutil.log(srv)
     with grpc.insecure_channel(srv) as channel:
         sxutil.log("Connecting synerex Server:" + srv)
@@ -36,4 +42,5 @@ def run():
         connectSynerexServer(sxClient)
 
 if __name__ == '__main__':
-    run()
+    run(sys.argv)
+
