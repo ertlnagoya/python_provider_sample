@@ -23,9 +23,6 @@ def subscribeSupply(client):
     sxutil.log('供給を受け取ります')
     client.SubscribeSupply(supplyCallback)
 
-def connectSynerexServer(client):
-    subscribeSupply(client)
-
 def run(args):
     if len(args) == 1:
         channels = [1]
@@ -38,8 +35,10 @@ def run(args):
         sxutil.log("Connecting synerex Server:" + srv)
         client = synerex_pb2_grpc.SynerexStub(channel)
         sxClient = sxutil.SXServiceClient(client, 1, '')
+        # 需要を出す
         notifyDemand(sxClient)
-        connectSynerexServer(sxClient)
+        # 供給を受け取る
+        subscribeSupply(sxClient)
 
 if __name__ == '__main__':
     run(sys.argv)
