@@ -1,4 +1,4 @@
-# 大鐘 演習EF プログラム
+# ganechi - enshuEF
 Synerexを用いた、合流調停システムの開発
 
 ## Program

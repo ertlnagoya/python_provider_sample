@@ -1,3 +1,6 @@
+#
+# 車両プロバイダ（道路の占有を要求）
+#
 import sys
 import grpc
 import time
@@ -15,7 +18,7 @@ def notifyDemand(client):
     client.NotifyDemand(dmo)
 
 def supplyCallback(client, sp):
-    sxutil.log('供給を受け取りました：{}'.format(sp.supply_name))
+    sxutil.log(f'供給を受け取りました：{sp.supply_name}')
     pid = client.SelectSupply(sp)
     sxutil.log(pid)
 
@@ -25,7 +28,7 @@ def subscribeSupply(client):
 
 def run(args):
     if len(args) == 1:
-        channels = [1]
+        channels = [1,2]
     else:
         channels = [int(args[1])]
     sxutil.log(f'channels : {channels}')

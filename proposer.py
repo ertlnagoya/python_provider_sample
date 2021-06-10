@@ -1,3 +1,6 @@
+#
+# 道路プロバイダ（道路の空き状況を供給）
+#
 import sys
 import grpc
 import time
@@ -9,7 +12,7 @@ from api import synerex_pb2
 from api import synerex_pb2_grpc
 
 def demandCallback(client, dm):
-    sxutil.log('需要を受け取りました： {}'.format(dm.demand_name))
+    sxutil.log(f'需要を受け取りました： {dm.demand_name}')
     if dm.target_id != 0:
         sxutil.log('getSelect')
         client.Confirm(dm.id)
