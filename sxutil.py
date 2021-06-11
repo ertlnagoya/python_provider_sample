@@ -27,12 +27,12 @@ class SxError(Exception):
     pass
 
 class DemandOpts:
-    def __init__(self, name):
+    def __init__(self, name, data):
         self.ID = 0
         self.Target = 0
         self.Name = name
         self.JSON = ''
-        self.Cdata = None
+        self.Cdata = data
 
 class SupplyOpts:
     def __init__(self, target, name):
@@ -84,7 +84,7 @@ class SXServiceClient:
 
     def NotifyDemand(self, dmo):
         timestamp = Timestamp()
-        dm = synerex_pb2.Demand(id=rand_ints_nodup(), sender_id=self.ClientID, channel_type=self.ChannelType, demand_name=dmo.Name, ts=timestamp)
+        dm = synerex_pb2.Demand(id=rand_ints_nodup(), sender_id=self.ClientID, channel_type=self.ChannelType, demand_name=dmo.Name, cdata=dmo.Cdata, ts=timestamp)
         self.Client.NotifyDemand(dm)
         return dmo.ID
 

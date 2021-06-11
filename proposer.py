@@ -12,13 +12,16 @@ from api import synerex_pb2
 from api import synerex_pb2_grpc
 
 def demandCallback(client, dm):
-    sxutil.log(f'需要を受け取りました： {dm.demand_name}')
+    sxutil.log(f'需要を受け取りました：{dm.demand_name}')
+    sxutil.log(dm)
     if dm.target_id != 0:
-        sxutil.log('getSelect')
+        sxutil.log('マッチングしました。確定します。')
+        # 4.Confirm
         client.Confirm(dm.id)
     else:
         sxutil.log('供給：このスペースを使ってください！')
         spo = sxutil.SupplyOpts(dm.id, 'このスペースを使ってください！')
+        # 2.Propose Supply
         pid = client.ProposeSupply(spo)
         sxutil.log(pid)
 
