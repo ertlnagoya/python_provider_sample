@@ -30,11 +30,17 @@ def notifyDemand(client):
 
 def supplyCallback(client, sp):
     sxutil.log(f'供給を受け取りました：{sp.supply_name}')
-    sxutil.log(sp.arg_json)
-    ## 3.Select Supply
-    pid = client.SelectSupply(sp)
-    sxutil.log(pid)
-    sxutil.log('マッチング完了しました')
+    data = json.loads(sp.arg_json)
+    sxutil.log(data)
+
+    # 占有済みかどうかで分岐
+    if data['state']:
+        ## 3.Select Supply
+        pid = client.SelectSupply(sp)
+        sxutil.log(pid)
+        sxutil.log('マッチング完了しました')
+    else:
+        sxutil.log('マッチング失敗です。すでに占有されています。')
 
 def subscribeSupply(client):
     sxutil.log('供給を受け取ります')

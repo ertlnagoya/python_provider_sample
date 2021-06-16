@@ -20,9 +20,9 @@ def demandCallback(client, dm):
     sxutil.log(dm.arg_json)
     if dm.target_id != 0:
         sxutil.log('マッチングしました。確定します。')
-        # 4.Confirm
         global lane_state
         lane_state = False # 占有状態に
+        # 4.Confirm
         client.Confirm(dm.id)
     else:
         sxutil.log('供給：このスペースを使ってください！')
