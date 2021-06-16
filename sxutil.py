@@ -6,6 +6,9 @@ from nodeapi import nodeapi_pb2
 from nodeapi import nodeapi_pb2_grpc
 from api import synerex_pb2
 from api import synerex_pb2_grpc
+# protoファイルから読み込みたいが、とりあえずJSONでやりとり
+# from proto.ganechi import ganechi_pb2
+# from proto.ganechi import ganechi_pb2_grpc
 
 ns = []
 
@@ -31,15 +34,15 @@ class DemandOpts:
         self.ID = 0
         self.Target = 0
         self.Name = name
-        self.JSON = ''
-        self.Cdata = data
+        self.JSON = data
+        self.Cdata = None
 
 class SupplyOpts:
-    def __init__(self, target, name):
+    def __init__(self, target, name, data):
         self.ID = 0
         self.Target = target
         self.Name = name
-        self.JSON = ''
+        self.JSON = data
         self.Cdata = None
 
 class SxServerOpts:
@@ -74,7 +77,7 @@ class SXServiceClient:
 
     def ProposeSupply(self, spo):
         timestamp = Timestamp()
-        sp = synerex_pb2.Supply(id=rand_ints_nodup(), sender_id=self.ClientID, target_id=spo.Target, channel_type=self.ChannelType, supply_name=spo.Name, ts=timestamp)
+        sp = synerex_pb2.Supply(id=rand_ints_nodup(), sender_id=self.ClientID, target_id=spo.Target, channel_type=self.ChannelType, supply_name=spo.Name, arg_json=spo.JSON, ts=timestamp)
         pid = self.Client.ProposeSupply(sp)
         return pid
 
@@ -84,7 +87,7 @@ class SXServiceClient:
 
     def NotifyDemand(self, dmo):
         timestamp = Timestamp()
-        dm = synerex_pb2.Demand(id=rand_ints_nodup(), sender_id=self.ClientID, channel_type=self.ChannelType, demand_name=dmo.Name, cdata=dmo.Cdata, ts=timestamp)
+        dm = synerex_pb2.Demand(id=rand_ints_nodup(), sender_id=self.ClientID, channel_type=self.ChannelType, demand_name=dmo.Name, arg_json=dmo.JSON, ts=timestamp)
         self.Client.NotifyDemand(dm)
         return dmo.ID
 

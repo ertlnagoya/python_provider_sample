@@ -6,21 +6,26 @@ import grpc
 import time
 import random
 import sxutil
+import json # add
 from nodeapi import nodeapi_pb2
 from nodeapi import nodeapi_pb2_grpc
 from api import synerex_pb2
 from api import synerex_pb2_grpc
 
+state = True
+lane_id = "0"
+
 def demandCallback(client, dm):
     sxutil.log(f'需要を受け取りました：{dm.demand_name}')
-    sxutil.log(dm)
+    sxutil.log(dm.arg_json)
     if dm.target_id != 0:
         sxutil.log('マッチングしました。確定します。')
         # 4.Confirm
         client.Confirm(dm.id)
     else:
         sxutil.log('供給：このスペースを使ってください！')
-        spo = sxutil.SupplyOpts(dm.id, 'このスペースを使ってください！')
+        data = {"lane":lane_id, "state": state}
+        spo = sxutil.SupplyOpts(dm.id, 'このスペースを使ってください！',json.dumps(data))
         # 2.Propose Supply
         pid = client.ProposeSupply(spo)
         sxutil.log(pid)
@@ -29,11 +34,8 @@ def subscribeDemand(client):
     sxutil.log('需要を受け取ります')
     client.SubscribeDemand(demandCallback)
 
-def run(args):
-    if len(args) == 1:
-        channels = [1]
-    else:
-        channels = [int(args[1])]
+def run():
+    channels = [1]
     sxutil.log(f'channels : {channels}')
     srv = 'localhost:10000'
     sxutil.log(srv)
@@ -45,4 +47,5 @@ def run(args):
         subscribeDemand(sxClient)
 
 if __name__ == '__main__':
-    run(sys.argv)
+    lane_id = input("lane_id:")
+    run()
