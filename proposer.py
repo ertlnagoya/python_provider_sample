@@ -12,7 +12,7 @@ from nodeapi import nodeapi_pb2_grpc
 from api import synerex_pb2
 from api import synerex_pb2_grpc
 
-state = True
+lane_state = True # 空:Truw 満:False
 lane_id = "0"
 
 def demandCallback(client, dm):
@@ -21,11 +21,13 @@ def demandCallback(client, dm):
     if dm.target_id != 0:
         sxutil.log('マッチングしました。確定します。')
         # 4.Confirm
+        global lane_state
+        lane_state = False # 占有状態に
         client.Confirm(dm.id)
     else:
         sxutil.log('供給：このスペースを使ってください！')
-        data = {"lane":lane_id, "state": state}
-        spo = sxutil.SupplyOpts(dm.id, 'このスペースを使ってください！',json.dumps(data))
+        data = {"lane":lane_id, "state": lane_state}
+        spo = sxutil.SupplyOpts(dm.id, 'レーン:'+lane_id+" 状態:"+str(lane_state), json.dumps(data))
         # 2.Propose Supply
         pid = client.ProposeSupply(spo)
         sxutil.log(pid)

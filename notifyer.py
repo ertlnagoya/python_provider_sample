@@ -17,13 +17,14 @@ from api import synerex_pb2_grpc
 car_id = 0
 lane_now = 0
 lane_available = ["0"]
+time_id = 0
 
 def notifyDemand(client):
     sxutil.log('需要出します！')
     sxutil.log('需要：このスペースに１秒後入りたいです')
-    lane_available = input("lane_available:").split(',')
-    data = {"lane_available":lane_available,"from":"10:00:00","to":"10:00:10"}
-    dmo = sxutil.DemandOpts('このスペースに１秒後入りたいです', json.dumps(data))
+    # lane_available = input("lane_available:").split(',')
+    data = {"lane_available":lane_available,"time":time_id}
+    dmo = sxutil.DemandOpts('車両:'+car_id+" 進行可能:"+str(lane_available), json.dumps(data))
     # 1. Notify Demand
     client.NotifyDemand(dmo)
 
@@ -54,4 +55,5 @@ def run():
         subscribeSupply(sxClient)
 
 if __name__ == '__main__':
+    car_id = input("car_id:")
     run()
