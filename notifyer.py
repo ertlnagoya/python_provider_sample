@@ -8,6 +8,7 @@ import random
 import sxutil
 import json # add
 import datetime as dt # add
+import argparse # add
 from nodeapi import nodeapi_pb2
 from nodeapi import nodeapi_pb2_grpc
 from api import synerex_pb2
@@ -16,6 +17,9 @@ from api import synerex_pb2_grpc
 # from proto.ganechi import ganechi_pb2_grpc
 
 reserve = {} #時間がkey,lane_idがvalueのdict
+
+parser = argparse.ArgumentParser(description='車両プロバイダ（道路の占有を要求）')
+parser.add_argument('car_id', help='車のidを指定（string型）')
 
 def reserveTime(delay=0):
     # 予約する時間を算出する(delayでさらに何秒後かを)
@@ -56,6 +60,8 @@ def supplyCallback(client, sp):
     sxutil.log('--------------------------------')
     sxutil.log(reserve)
     sxutil.log('--------------------------------')
+    # 次の需要を出す
+    notifyDemand(client)
 
 def subscribeSupply(client):
     sxutil.log('供給待ちです...')
@@ -75,9 +81,8 @@ def run():
         notifyDemand(sxClient)
         # 供給を受け取る
         subscribeSupply(sxClient)
-        sxutil.log('END')
 
 if __name__ == '__main__':
-    car_id = input("car_id:")
+    args = parser.parse_args()
+    car_id = args.car_id
     run()
-    sxutil.log('ENDEND')
