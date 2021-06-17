@@ -92,5 +92,5 @@ class SXServiceClient:
         return dmo.ID
 
     def SelectSupply(self, sp):
-        tgt = synerex_pb2.Target(id=rand_ints_nodup(), sender_id=self.ClientID, target_id=sp.id, channel_type=self.ChannelType)
+        tgt = synerex_pb2.Target(id=rand_ints_nodup(), sender_id=self.ClientID, target_id=sp.id, channel_type=self.ChannelType, arg_json=sp.arg_json)
         self.Client.SelectSupply(tgt)

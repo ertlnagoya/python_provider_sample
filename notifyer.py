@@ -15,7 +15,7 @@ from api import synerex_pb2_grpc
 # from proto.ganechi import ganechi_pb2
 # from proto.ganechi import ganechi_pb2_grpc
 
-reserve = {'00:00:00': 'car_0'} #時間がkey,lane_idがvalueのdict
+reserve = {} #時間がkey,lane_idがvalueのdict
 
 def reserveTime(delay=0):
     # 予約する時間を算出する(delayでさらに何秒後かを)
@@ -25,30 +25,41 @@ def reserveTime(delay=0):
     return str(now.hour)+":"+str(now.minute)+":"+str(round(now.second,-1))
 
 def notifyDemand(client):
-    sxutil.log('1.需要：このスペースに１秒後入りたいです')
-    # lane_available = input("lane_available:").split(',')
+    lane_available = input('lane_available:').split(',')
     data = {"car":car_id, "lane_available":lane_available,"time":reserveTime()}
+    sxutil.log(f'1.需要：{data}')
     dmo = sxutil.DemandOpts('車両:'+car_id+" 進行可能:"+str(lane_available), json.dumps(data))
     # 1. Notify Demand
     client.NotifyDemand(dmo)
 
 def supplyCallback(client, sp):
-    sxutil.log(f'供給受取：{sp.supply_name}')
+    # 自分のレーン以外の情報は表示しない
     data = json.loads(sp.arg_json)
+    if data['car'] != car_id:
+        return
+
+    sxutil.log(f'供給受取：{sp.supply_name}')
     sxutil.log(data)
 
-    # 占有済みかどうかで分岐
-    if data['state']:
-        ## 3.Select Supply
+    ## 3.Select Supply
+    # 他のレーンを予約していないか確認
+    if data['time'] in reserve:
+        # 予約済み
+        sxutil.log('E.すでに予約済みです')
+    else:
+        # 未予約
+        sxutil.log('3.マッチングしました')
+        reserve[data['time']] = data['lane'] # 予約
         pid = client.SelectSupply(sp)
         sxutil.log(pid)
-        sxutil.log('3.マッチング完了しました')
-    else:
-        sxutil.log('E.マッチング失敗です。すでに占有されています。')
+
+    sxutil.log('--------------------------------')
+    sxutil.log(reserve)
     sxutil.log('--------------------------------')
 
 def subscribeSupply(client):
     sxutil.log('供給待ちです...')
+    sxutil.log('--------------------------------')
     client.SubscribeSupply(supplyCallback)
 
 def run():
@@ -68,6 +79,5 @@ def run():
 
 if __name__ == '__main__':
     car_id = input("car_id:")
-    lane_available = input('lane_available:').split(',')
     run()
     sxutil.log('ENDEND')
