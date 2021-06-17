@@ -13,27 +13,45 @@ from api import synerex_pb2
 from api import synerex_pb2_grpc
 
 lane_state = True # 空:Truw 満:False
-lane_id = "0"
+reserve = {'00:00:00': 'car_0'} #時間がkey,car_idがvalueのdict
 
 def demandCallback(client, dm):
-    sxutil.log(f'需要を受け取りました：{dm.demand_name}')
-    sxutil.log(dm.arg_json)
+    sxutil.log(f'需要受取：{dm.demand_name}')
+    # sxutil.log(dm)
     if dm.target_id != 0:
-        sxutil.log('マッチングしました。確定します。')
+        sxutil.log('4.マッチングしました。確定します。')
+
         global lane_state
         lane_state = False # 占有状態に
         # 4.Confirm
         client.Confirm(dm.id)
+    elif dm.demand_name != '':
+        data = json.loads(dm.arg_json)
+        sxutil.log(data)
+        # 進行可能に含まれるかどうか
+        if lane_id in data['lane_available']:
+            # 予約をできるかを確認
+            global reserve
+            if data['time'] in reserve:
+                # 予約済み
+                sxutil.log('E.供給：すでに予約済みです')
+            else:
+                # 未予約
+                sxutil.log('2.供給：予約可能です')
+                data = {"lane":lane_id, "car":data['car'], "time":data['time'], "state": lane_state}
+                spo = sxutil.SupplyOpts(dm.id, 'レーン:'+lane_id+" 状態:"+str(lane_state), json.dumps(data))
+                # 2.Propose Supply
+                pid = client.ProposeSupply(spo)
+                sxutil.log(pid)
+        else:
+            #進行可能に含まれない
+            sxutil.log('E.lane_availableに含まれていません。')
     else:
-        sxutil.log('供給：このスペースを使ってください！')
-        data = {"lane":lane_id, "state": lane_state}
-        spo = sxutil.SupplyOpts(dm.id, 'レーン:'+lane_id+" 状態:"+str(lane_state), json.dumps(data))
-        # 2.Propose Supply
-        pid = client.ProposeSupply(spo)
-        sxutil.log(pid)
+        sxutil.log('ELSE')
+    sxutil.log('--------------------------------')
 
 def subscribeDemand(client):
-    sxutil.log('需要を受け取ります')
+    sxutil.log('需要待ちです...')
     client.SubscribeDemand(demandCallback)
 
 def run():

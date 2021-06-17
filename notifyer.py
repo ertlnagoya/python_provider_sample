@@ -7,6 +7,7 @@ import time
 import random
 import sxutil
 import json # add
+import datetime as dt # add
 from nodeapi import nodeapi_pb2
 from nodeapi import nodeapi_pb2_grpc
 from api import synerex_pb2
@@ -14,22 +15,25 @@ from api import synerex_pb2_grpc
 # from proto.ganechi import ganechi_pb2
 # from proto.ganechi import ganechi_pb2_grpc
 
-car_id = 0
-lane_now = 0
-lane_available = ["0"]
-time_id = 0
+reserve = {'00:00:00': 'car_0'} #時間がkey,lane_idがvalueのdict
+
+def reserveTime(delay=0):
+    # 予約する時間を算出する(delayでさらに何秒後かを)
+    now = dt.datetime.now()
+    # 次の枠(10秒後)を指定
+    now += dt.timedelta(seconds=10+delay)
+    return str(now.hour)+":"+str(now.minute)+":"+str(round(now.second,-1))
 
 def notifyDemand(client):
-    sxutil.log('需要出します！')
-    sxutil.log('需要：このスペースに１秒後入りたいです')
+    sxutil.log('1.需要：このスペースに１秒後入りたいです')
     # lane_available = input("lane_available:").split(',')
-    data = {"lane_available":lane_available,"time":time_id}
+    data = {"car":car_id, "lane_available":lane_available,"time":reserveTime()}
     dmo = sxutil.DemandOpts('車両:'+car_id+" 進行可能:"+str(lane_available), json.dumps(data))
     # 1. Notify Demand
     client.NotifyDemand(dmo)
 
 def supplyCallback(client, sp):
-    sxutil.log(f'供給を受け取りました：{sp.supply_name}')
+    sxutil.log(f'供給受取：{sp.supply_name}')
     data = json.loads(sp.arg_json)
     sxutil.log(data)
 
@@ -38,12 +42,13 @@ def supplyCallback(client, sp):
         ## 3.Select Supply
         pid = client.SelectSupply(sp)
         sxutil.log(pid)
-        sxutil.log('マッチング完了しました')
+        sxutil.log('3.マッチング完了しました')
     else:
-        sxutil.log('マッチング失敗です。すでに占有されています。')
+        sxutil.log('E.マッチング失敗です。すでに占有されています。')
+    sxutil.log('--------------------------------')
 
 def subscribeSupply(client):
-    sxutil.log('供給を受け取ります')
+    sxutil.log('供給待ちです...')
     client.SubscribeSupply(supplyCallback)
 
 def run():
@@ -59,7 +64,10 @@ def run():
         notifyDemand(sxClient)
         # 供給を受け取る
         subscribeSupply(sxClient)
+        sxutil.log('END')
 
 if __name__ == '__main__':
     car_id = input("car_id:")
+    lane_available = input('lane_available:').split(',')
     run()
+    sxutil.log('ENDEND')
