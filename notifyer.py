@@ -18,15 +18,12 @@ from api import synerex_pb2_grpc
 
 reserve = {} #時間がkey,lane_idがvalueのdict
 
-parser = argparse.ArgumentParser(description='車両プロバイダ（道路の占有を要求）')
-parser.add_argument('car_id', help='車のidを指定（string型）')
-
 def reserveTime(delay=0):
     # 予約する時間を算出する(delayでさらに何秒後かを)
     now = dt.datetime.now()
     # 次の枠(10秒後)を指定
     now += dt.timedelta(seconds=10+delay)
-    return str(now.hour)+":"+str(now.minute)+":"+str(round(now.second,-1))
+    return str(now.hour)+":"+str(now.minute)+":"+str(now.second-now.second%10)
 
 def notifyDemand(client):
     lane_available = input('lane_available:').split(',')
@@ -83,6 +80,8 @@ def run():
         subscribeSupply(sxClient)
 
 if __name__ == '__main__':
+    parser = argparse.ArgumentParser(description='車両プロバイダ（道路の占有を要求）')
+    parser.add_argument('car_id', help='車のidを指定（string型）')
     args = parser.parse_args()
     car_id = args.car_id
     run()

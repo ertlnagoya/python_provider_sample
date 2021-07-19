@@ -16,8 +16,6 @@ from api import synerex_pb2_grpc
 reserve = {} #時間がkey,car_idがvalueのdict
 temp = {}
 
-parser = argparse.ArgumentParser(description='道路プロバイダ（道路の空き状態を提供）')
-parser.add_argument('lane_id', help='レーンのIDを指定（int型）')
 
 def demandCallback(client, dm):
     sxutil.log(f'需要受取：{dm.demand_name}')
@@ -76,6 +74,8 @@ def run():
         subscribeDemand(sxClient)
 
 if __name__ == '__main__':
+    parser = argparse.ArgumentParser(description='道路プロバイダ（道路の空き状態を提供）')
+    parser.add_argument('lane_id', help='レーンのIDを指定（int型）')
     args = parser.parse_args()
     lane_id = args.lane_id
     run()
